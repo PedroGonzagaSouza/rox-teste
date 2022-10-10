@@ -1,0 +1,68 @@
+
+
+person_df_tratado.createOrReplaceTempView('person')
+sale_costumer_df_tratado.createOrReplaceTempView('sales_costumer')
+product_df_tratado.createOrReplaceTempView('product')
+sales_orderDetail_df_tratado.createOrReplaceTempView('sales_orderDetail')
+sales_orderHeader_df_tratado.createOrReplaceTempView('sales_orderHeader')
+sales_specialOffer_df_tratado.createOrReplaceTempView('sales_specialOffer')
+
+
+
+
+query1="""
+  SELECT SalesOrderID, COUNT(SalesOrderDetailID) FROM sales_orderDetail GROUP BY SalesOrderID HAVING COUNT(SalesOrderDetailID) >= 3
+  """
+resultado1 = spark.sql(query1)
+
+""" =============================================="""
+
+query2 = """ 
+select name from (
+select name, daystomanufacture, sum(orderqty) as soma
+from sales_orderDetail sod
+left join sales_specialOffer sop on sod.SpecialOfferID = sop.SpecialOfferID and sod.ProductID = sop.ProductID
+left join product p on p.productID = sop.productID
+group by name, daystomanufacture
+)
+order by soma limit 3 
+"""
+resultado2 = spark.sql(query2)
+
+""" =============================================="""
+
+query3="""
+select p.FirstName, count(soh.SalesOrderID) from person p
+left join sales_costumer sc on p.BusinessEntityID = sc.PersonID
+left join sales_orderHeader soh on soh.CustomerID = sc.CustomerID
+group by FirstName
+"""
+resultado3 = spark.sql(query3)
+
+""" ======================================== """
+
+"""query4 = 
+SELECT sod.ProductID as id, 
+       p.Name as name from person p,
+       sum(OrderQty) OVER(PARTITION BY sod.ProductID) AS qtd_id,
+       soh.OrderDate,
+       sum(OrderQty) OVER(PARTITION BY soh.OrderDate) AS qtd_OrderDate
+FROM sales_orderDetail AS sod
+INNER JOIN sales_orderHeader as soh ON sod.SalesOrderID  = soh.SalesOrderID 
+INNER JOIN product AS p ON sod.ProductID = p.ProductID 
+GROUP BY sod.ProductID, soh.OrderDate, name
+ORDER BY soh.OrderDate
+
+
+resultado4 = spark.sql(query4)
+"""
+
+query5 = """
+SELECT SalesOrderID, DATE(OrderDate), TotalDue
+FROM sales_orderHeader AS soh
+WHERE DATE(OrderDate) BETWEEN DATE('2011-09-01') AND DATE('2011-09-30') AND TotalDue > 1000
+ORDER BY TotalDue DESC
+"""
+resultado5 = spark.sql(query5)
+
+resultado5.show()

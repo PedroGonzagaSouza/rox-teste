@@ -2,10 +2,10 @@ import pymysql
 
 
 # MySQL DB Credentials
-username = 'gonzaga'# your MySQL username
-password = '#Hjk6m9x7'# your MySQL password
-host = "localhost"
-port='3306'
+username = ''# your MySQL username
+password = ''# your MySQL password
+host = ""
+port=''
 
 # Create database Person from SQL script file
 with open('scripts_db/create_db_Person.sql', 'r') as query:
